@@ -4,10 +4,39 @@
               android:layout_width="fill_parent"
               android:layout_height="fill_parent"
         >
-    <TextView
+    <EditText
+            android:id="@+id/user_name"
+            android:hint="username"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    <EditText
+            android:id="@+id/password"
+            android:hint="password"
+            android:inputType="textPassword"
+            android:gravity="center"
+            android:ellipsize="start"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    <Button
+            android:id="@+id/ok_buton"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Hello World, LoginActivity"
+            android:text="Ok"/>
+
+    <SurfaceView
+            android:id="@+id/preview"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            />
+
+    <Button
+            android:id="@+id/button_capture"
+            android:text="Capture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
             />
 </LinearLayout>
+
 
