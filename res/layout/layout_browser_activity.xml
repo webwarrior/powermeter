@@ -13,8 +13,8 @@
 
     <SurfaceView
             android:id="@+id/preview_surface"
-            android:layout_width="640px"
-            android:layout_height="480px"
+            android:layout_width="800px"
+            android:layout_height="600px"
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true" />
 

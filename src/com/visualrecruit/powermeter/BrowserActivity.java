@@ -1,8 +1,7 @@
 package com.visualrecruit.powermeter;
 
 import android.app.Activity;
-import android.graphics.Canvas;
-import android.graphics.Paint;
+import android.graphics.*;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -17,7 +16,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import android.content.Context;
-import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.util.Log;
@@ -34,8 +32,8 @@ import android.widget.TextView;
 public class BrowserActivity extends Activity {
     private static final String TAG = "YUV420SP";
     private static final String FORMAT_FPS = "YUV420SP->ARGB %d fps\nAve. %.3fms\nmin %.3fms max %.3fms";
-    private static int PREVIEW_WIDTH = 640;
-    private static int PREVIEW_HEIGHT = 480;
+    private static int PREVIEW_WIDTH = 800;
+    private static int PREVIEW_HEIGHT = 600;
     // private int mSurfaceWidth = 640;
     // private int mSurfaceHeight = 480;
 
@@ -44,12 +42,11 @@ public class BrowserActivity extends Activity {
     private Camera mCamera;
 
     // for filter
-    // YUV420SP→ARGB変換後の描画先Surfaceのバッファは面倒なのでサイズ固定。
+    // YUV420SP→ARGB
     private int[] mRGBData = new int[PREVIEW_WIDTH * PREVIEW_HEIGHT];
     private Paint mPaint = new Paint();
 
     // for fps
-    // 適当処理時間・FPS表示領域用タイマ等メンバ変数
     private TextView mFpsTextView;
     private long mSumEffectTime;
     private long mMinEffectTime = 0;
@@ -70,6 +67,8 @@ public class BrowserActivity extends Activity {
             mCamera = Camera.open(0);
 
             if (mCamera != null) {
+                mCamera.setDisplayOrientation(90);
+                //mCamera.enableShutterSound(false);
                 mCamera.setPreviewCallbackWithBuffer(mPreviewCallback);
                 try {
                     mCamera.setPreviewDisplay(holder);
@@ -85,7 +84,10 @@ public class BrowserActivity extends Activity {
             if (mCamera != null) {
                 // init preview
                 mCamera.stopPreview();
+                mCamera.setDisplayOrientation(90);
                 Camera.Parameters params = mCamera.getParameters();
+                //params.set("orientation", "portrait");
+                //params.setRotation(90);
                 // VGA
                 params.setPreviewSize(PREVIEW_WIDTH, PREVIEW_HEIGHT);
                 mCamera.setParameters(params);
@@ -95,32 +97,32 @@ public class BrowserActivity extends Activity {
                 mCamera.addCallbackBuffer(new byte[PREVIEW_WIDTH * PREVIEW_HEIGHT * 3 / 2]);
             }
 
-            // start timer
-            mFrames = 0;
-            mPrivFrames = 0;
-            mSumEffectTime = 0;
-            mFpsTimer = new Timer();
-            mFpsTimer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    // nano sec.
-                    if ((mPrivFrames > 0) && (mSumEffectTime > 0)) {
-                        long frames = mFrames - mPrivFrames;
-                        mFpsString = String.format(FORMAT_FPS, frames,
-                                ((double) mSumEffectTime) / (frames * 1000000.0),
-                                ((double) mMinEffectTime) / (1000000.0), ((double) mMaxEffectTime) / (1000000.0));
-                        mSumEffectTime = 0;
-                        mMinEffectTime = 0;
-                        mMaxEffectTime = 0;
-                        runOnUiThread(new Runnable() {
-                            public void run() {
-                                mFpsTextView.setText(mFpsString);
-                            }
-                        });
-                    }
-                    mPrivFrames = mFrames;
-                }
-            }, 0, 1000); // 1000ms periodic
+//            // start timer
+//            mFrames = 0;
+//            mPrivFrames = 0;
+//            mSumEffectTime = 0;
+//            mFpsTimer = new Timer();
+//            mFpsTimer.scheduleAtFixedRate(new TimerTask() {
+//                @Override
+//                public void run() {
+//                    // nano sec.
+//                    if ((mPrivFrames > 0) && (mSumEffectTime > 0)) {
+//                        long frames = mFrames - mPrivFrames;
+//                        mFpsString = String.format(FORMAT_FPS, frames,
+//                                ((double) mSumEffectTime) / (frames * 1000000.0),
+//                                ((double) mMinEffectTime) / (1000000.0), ((double) mMaxEffectTime) / (1000000.0));
+//                        mSumEffectTime = 0;
+//                        mMinEffectTime = 0;
+//                        mMaxEffectTime = 0;
+//                        runOnUiThread(new Runnable() {
+//                            public void run() {
+//                                mFpsTextView.setText(mFpsString);
+//                            }
+//                        });
+//                    }
+//                    mPrivFrames = mFrames;
+//                }
+//            }, 0, 1000); // 1000ms periodic
         }
 
         public void surfaceDestroyed(SurfaceHolder holder) {
@@ -133,6 +135,7 @@ public class BrowserActivity extends Activity {
             // deinit preview
             if (mCamera != null) {
                 mCamera.stopPreview();
+                mCamera.setDisplayOrientation(90);
                 mCamera.setPreviewCallbackWithBuffer(null);
                 mCamera.release();
                 mCamera = null;
@@ -163,11 +166,26 @@ public class BrowserActivity extends Activity {
             if (mFilterSurfaceView != null) {
                 SurfaceHolder holder = mFilterSurfaceView.getHolder();
                 Canvas canvas = holder.lockCanvas();
+                Bitmap _buffer;
                 // canvas.save();
                 // canvas.scale(mSurfaceWidth / PREVIEW_WIDTH, mSurfaceHeight / PREVIEW_HEIGHT);
-                canvas.drawBitmap(mRGBData, 0, PREVIEW_WIDTH, 0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT, false, mPaint);
+                _buffer = Bitmap.createBitmap(mRGBData, PREVIEW_WIDTH, PREVIEW_HEIGHT, Bitmap.Config.RGB_565);
+                int pixel =_buffer.getPixel(50,50);
+                int a = Color.alpha(pixel);
+                int r = Color.red(pixel);
+                int g = Color.green(pixel);
+                int b = Color.blue(pixel);
+
+                String color = String.format("#%02X%02X%02X%02X", a, r, g, b); //#FFFF0000 for RED color
+
+                //mFpsTextView.setText(mFpsTextView.getText().toString() + "\n" + color);
+                mFpsTextView.setText("Color: " + color);
+
+                //canvas.drawBitmap(mRGBData, 0, PREVIEW_WIDTH, 0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT, false, mPaint);
+                //canvas.rotate(90);
                 // canvas.restore();
                 holder.unlockCanvasAndPost(canvas);
+                //holder.
                 mFrames++;
             }
         }
