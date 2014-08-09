@@ -65,13 +65,10 @@ public class BrowserActivity extends Activity {
     private SurfaceHolder.Callback mPreviewSurfaceListener = new SurfaceHolder.Callback() {
 
         public void surfaceCreated(SurfaceHolder holder) {
-            // あればFront Cameraを使うつもりの適当コード。
-            // Front CameraのPreviewの特性として左右が反転します。
-            if (Camera.getNumberOfCameras() > 1) {
-                mCamera = Camera.open(1);
-            } else {
-                mCamera = Camera.open(0);
-            }
+            // Back Camera
+            // Back Camera Preview
+            mCamera = Camera.open(0);
+
             if (mCamera != null) {
                 mCamera.setPreviewCallbackWithBuffer(mPreviewCallback);
                 try {
@@ -89,14 +86,12 @@ public class BrowserActivity extends Activity {
                 // init preview
                 mCamera.stopPreview();
                 Camera.Parameters params = mCamera.getParameters();
-                // ﾋｬｯﾊｰ、対応していないデバイスは知るか、VGA固定だー！
+                // VGA
                 params.setPreviewSize(PREVIEW_WIDTH, PREVIEW_HEIGHT);
                 mCamera.setParameters(params);
                 mCamera.startPreview();
 
-                // AndroidのCameraのからPreviewを取得した際の標準フォーマットYUV420SPは
-                // Yチャンネルが1画素8bit、UとVチャンネルがそれぞれ2x2画素毎に8bit含まれるので、1/4+1/4=1/2。
-                // その結果必要なバッファ量は画素数の3/2倍になるのでこういう書き方をします。
+                // Android Camera
                 mCamera.addCallbackBuffer(new byte[PREVIEW_WIDTH * PREVIEW_HEIGHT * 3 / 2]);
             }
 
@@ -108,7 +103,7 @@ public class BrowserActivity extends Activity {
             mFpsTimer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
-                    // nano sec.で取得してるので適当に見やすく桁あわせ
+                    // nano sec.
                     if ((mPrivFrames > 0) && (mSumEffectTime > 0)) {
                         long frames = mFrames - mPrivFrames;
                         mFpsString = String.format(FORMAT_FPS, frames,
@@ -152,14 +147,11 @@ public class BrowserActivity extends Activity {
     private Camera.PreviewCallback mPreviewCallback = new Camera.PreviewCallback() {
 
         public void onPreviewFrame(byte[] data, Camera camera) {
-            // 何も考えずにバッファをaddしてますがこの後変換処理してるので本当は良くないです。
-            // 理想は3面以上のバッファを持って別Threadで画像処理タスクのキューイング管理が必要。
             if (camera != null) {
                 camera.addCallbackBuffer(data);
             }
 
-            // YUV420SP→ARGB変換。
-            // しつこくかいてるけど"YUV"と"YUV420SP"は結構示す範囲が違うので正確に表記すべき。
+            // YUV420SP→ARGB
             long before = System.nanoTime();
             // JavaFilter.decodeYUV420SP(mRGBData, data, PREVIEW_WIDTH, PREVIEW_HEIGHT);
             // call JNI method.
@@ -167,7 +159,7 @@ public class BrowserActivity extends Activity {
             long after = System.nanoTime();
             updateEffectTimes(after - before);
 
-            // int[]なARGB列に変換ができたらCanvas#drawBitmapで描画します。
+            // int[] ARGB
             if (mFilterSurfaceView != null) {
                 SurfaceHolder holder = mFilterSurfaceView.getHolder();
                 Canvas canvas = holder.lockCanvas();
@@ -182,9 +174,8 @@ public class BrowserActivity extends Activity {
     };
 
     /**
-     * 処理時間を更新。
      *
-     * @param elapsed 経過時間
+     * @param elapsed time
      */
     private void updateEffectTimes(long elapsed) {
         if (elapsed <= 0) {
