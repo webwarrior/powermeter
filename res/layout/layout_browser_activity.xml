@@ -11,8 +11,28 @@
             android:layout_height="wrap_content"
             android:text="Logout"/>
 
-    <WebView
-            android:id="@+id/webview"
-            android:layout_width="fill_parent" android:layout_height="fill_parent"></WebView>
+    <SurfaceView
+            android:id="@+id/preview_surface"
+            android:layout_width="640px"
+            android:layout_height="480px"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true" />
+
+    <SurfaceView
+            android:id="@+id/filter_surface"
+            android:layout_width="640px"
+            android:layout_height="480px"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true" />
+
+    <TextView
+            android:id="@+id/fps_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:gravity="right"
+            android:text="1"
+            android:textColor="#2266ff" />
 
 </LinearLayout>
